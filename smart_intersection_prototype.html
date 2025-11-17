@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Intersection AI Control System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-change {
+            font-size: 0.9em;
+            color: #10b981;
+            margin-top: 5px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .simulation-canvas {
+            background: #1a1a2e;
+            border-radius: 8px;
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+        }
+
+        .road {
+            position: absolute;
+            background: #3a3a4e;
+        }
+
+        .road-horizontal {
+            width: 100%;
+            height: 80px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .road-vertical {
+            width: 80px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .lane-marking {
+            position: absolute;
+            background: #fff;
+        }
+
+        .vehicle {
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            border-radius: 3px;
+            transition: all 0.5s ease;
+        }
+
+        .vehicle-car {
+            background: #3b82f6;
+        }
+
+        .vehicle-emergency {
+            background: #ef4444;
+            animation: flash 0.5s infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pedestrian {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #f59e0b;
+            transition: all 0.8s ease;
+        }
+
+        .cyclist {
+            position: absolute;
+            width: 20px;
+            height: 15px;
+            border-radius: 3px;
+            background: #10b981;
+            transition: all 0.8s ease;
+        }
+
+        .intersection-zone {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .control-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn.active {
+            background: #10b981;
+        }
+
+        .slider-control {
+            margin: 15px 0;
+        }
+
+        .slider-control label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e5e7eb;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 3px;
+            margin-top: 15px;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            transition: background 0.3s ease;
+        }
+
+        .design-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .design-card {
+            flex: 1;
+            min-width: 200px;
+            padding: 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .design-card:hover {
+            border-color: #667eea;
+            background: #f9fafb;
+        }
+
+        .design-card.selected {
+            border-color: #667eea;
+            background: #ede9fe;
+        }
+
+        .design-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-item strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚦 Smart Intersection Control System</h1>
+            <p class="tagline">AI-Powered Traffic Management Without Traditional Signals</p>
+            <div style="margin-top: 15px;">
+                <span class="status-indicator status-online"></span>
+                <strong>System Status: Active</strong> | V2X Communication Enabled
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <div class="metric-card">
+                <div class="metric-label">Safety Score</div>
+                <div class="metric-value" id="safetyScore">95.8</div>
+                <div class="metric-change">↑ 12% vs traditional signals</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">CO₂ Savings</div>
+                <div class="metric-value" id="co2Savings">32%</div>
+                <div class="metric-change">↓ 189 metric tons/year</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Wait Time Reduction</div>
+                <div class="metric-value" id="waitTime">48%</div>
+                <div class="metric-change">↓ Avg 24 seconds/vehicle</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Throughput</div>
+                <div class="metric-value" id="throughput">1,850</div>
+                <div class="metric-change">vehicles/hour</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <h2>🎮 Live Intersection Simulation</h2>
+                <div class="simulation-canvas" id="simulationCanvas">
+                    <div class="road road-horizontal"></div>
+                    <div class="road road-vertical"></div>
+                    <div class="intersection-zone"></div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3b82f6;"></div>
+                        <span>Vehicles</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ef4444;"></div>
+                        <span>Emergency</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <span>Pedestrians</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span>Cyclists</span>
+                    </div>
+                </div>
+                <div class="control-panel">
+                    <button class="control-btn" onclick="toggleSimulation()">⏸️ Pause</button>
+                    <button class="control-btn" onclick="addEmergencyVehicle()">🚑 Emergency Vehicle</button>
+                    <button class="control-btn" onclick="resetSimulation()">🔄 Reset</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>👥 Priority Controls</h2>
+                <div class="slider-control">
+                    <label>Pedestrian Priority: <span id="pedValue">50</span>%</label>
+                    <input type="range" min="0" max="100" value="50" id="pedPriority" oninput="updatePriority('ped')">
+                </div>
+                <div class="slider-control">
+                    <label>Cyclist Priority: <span id="cycValue">50</span>%</label>
+                    <input type="range" min="0" max="100" value="50" id="cycPriority" oninput="updatePriority('cyc')">
+                </div>
+                <div class="slider-control">
+                    <label>Vehicle Flow Rate: <span id="flowValue">50</span>%</label>
+                    <input type="range" min="10" max="100" value="50" id="flowRate" oninput="updatePriority('flow')">
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>V2X Active Vehicles</strong>
+                        <span id="v2xCount">24/28</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Avg Negotiation Time</strong>
+                        <span id="negTime">0.8s</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Conflict Detections</strong>
+                        <span id="conflicts">0</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Peak Hour ETA</strong>
+                        <span id="peakEta">12 min</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <h2>🔥 Vehicle Flow Heatmap</h2>
+                <p style="margin-bottom: 15px; color: #666;">Real-time traffic density visualization</p>
+                <div class="heatmap-grid" id="heatmapGrid"></div>
+                <div style="margin-top: 15px; display: flex; justify-content: space-between; font-size: 0.9em;">
+                    <span>Low Traffic</span>
+                    <span style="color: #667eea; font-weight: 600;">High Traffic</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>⚙️ Design Configuration</h2>
+                <div class="design-options">
+                    <div class="design-card selected" onclick="selectDesign(0)">
+                        <h3>🔄 Modern Roundabout</h3>
+                        <p>Continuous flow, 32% CO₂ reduction, best for medium traffic</p>
+                    </div>
+                    <div class="design-card" onclick="selectDesign(1)">
+                        <h3>🤝 Shared Space</h3>
+                        <p>Low-speed zone, high pedestrian interaction, urban areas</p>
+                    </div>
+                    <div class="design-card" onclick="selectDesign(2)">
+                        <h3>🤖 Adaptive AI</h3>
+                        <p>V2X negotiation, dynamic priority, high efficiency</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>📊 AI Traffic Pattern Analysis</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Peak Flow Period</strong>
+                    <span>7:30 AM - 9:00 AM | 5:00 PM - 6:30 PM</span>
+                </div>
+                <div class="info-item">
+                    <strong>Dominant Turning Ratio</strong>
+                    <span>Through: 60% | Left: 25% | Right: 15%</span>
+                </div>
+                <div class="info-item">
+                    <strong>Pedestrian Demand</strong>
+                    <span>High (120 crossings/hour during peak)</span>
+                </div>
+                <div class="info-item">
+                    <strong>Conflict Points</strong>
+                    <span>8 reduced to 2 with roundabout design</span>
+                </div>
+            </div>
+            <div style="margin-top: 20px; padding: 20px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
+                <strong style="color: #10b981; display: block; margin-bottom: 10px;">🌱 Sustainability Features</strong>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="margin: 8px 0;">✓ Solar-powered sensor beacon poles (100% renewable energy)</li>
+                    <li style="margin: 8px 0;">✓ Permeable pavement reduces stormwater runoff by 40%</li>
+                    <li style="margin: 8px 0;">✓ Green corridors with native vegetation (CO₂ absorption)</li>
+                    <li style="margin: 8px 0;">✓ Zero idling time = 20,000 gallons fuel saved annually</li>
+                    <li style="margin: 8px 0;">✓ Protected cycling lanes encourage zero-emission transport</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>🏘️ Community Engagement Plan</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div style="padding: 20px; background: #ede9fe; border-radius: 8px;">
+                    <strong style="color: #667eea; display: block; margin-bottom: 10px;">Phase 1: Awareness</strong>
+                    <p style="font-size: 0.95em;">Community surveys, public meetings, demonstration videos showing safety improvements</p>
+                </div>
+                <div style="padding: 20px; background: #dbeafe; border-radius: 8px;">
+                    <strong style="color: #3b82f6; display: block; margin-bottom: 10px;">Phase 2: Pilot Program</strong>
+                    <p style="font-size: 0.95em;">Temporary road furniture, 6-month trial with real-time monitoring and feedback collection</p>
+                </div>
+                <div style="padding: 20px; background: #d1fae5; border-radius: 8px;">
+                    <strong style="color: #10b981; display: block; margin-bottom: 10px;">Phase 3: Deployment</strong>
+                    <p style="font-size: 0.95em;">Public dashboard showing live safety scores, emissions savings, and travel time improvements</p>
+                </div>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: #fff7ed; border-radius: 8px;">
+                <strong>📢 Public Acceptance Rate:</strong> 31% (before) → 70% (after 1 year) based on IIHS studies
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let simulationRunning = true;
+        let vehicles = [];
+        let pedestrians = [];
+        let cyclists = [];
+        let vehicleId = 0;
+
+        const designs = ['Modern Roundabout', 'Shared Space', 'Adaptive AI'];
+        let currentDesign = 0;
+
+        // Initialize heatmap
+        const heatmapGrid = document.getElementById('heatmapGrid');
+        for (let i = 0; i < 100; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'heatmap-cell';
+            cell.style.background = getHeatColor(Math.random());
+            heatmapGrid.appendChild(cell);
+        }
+
+        function getHeatColor(intensity) {
+            const colors = ['#e0e7ff', '#c7d2fe', '#a5b4fc', '#818cf8', '#6366f1', '#4f46e5'];
+            return colors[Math.floor(intensity * colors.length)];
+        }
+
+        // Update heatmap periodically
+        setInterval(() => {
+            const cells = heatmapGrid.children;
+            for (let cell of cells) {
+                cell.style.background = getHeatColor(Math.random() * 0.8);
+            }
+        }, 3000);
+
+        function createVehicle(isEmergency = false) {
+            const canvas = document.getElementById('simulationCanvas');
+            const vehicle = document.createElement('div');
+            vehicle.className = isEmergency ? 'vehicle vehicle-emergency' : 'vehicle vehicle-car';
+            vehicle.id = 'vehicle-' + vehicleId++;
+            
+            const directions = ['north', 'south', 'east', 'west'];
+            const direction = directions[Math.floor(Math.random() * directions.length)];
+            
+            switch(direction) {
+                case 'north':
+                    vehicle.style.left = '50%';
+                    vehicle.style.top = '100%';
+                    vehicle.style.transform = 'translateX(-50%) rotate(180deg)';
+                    break;
+                case 'south':
+                    vehicle.style.left = '50%';
+                    vehicle.style.top = '-30px';
+                    vehicle.style.transform = 'translateX(-50%)';
+                    break;
+                case 'east':
+                    vehicle.style.left = '-30px';
+                    vehicle.style.top = '50%';
+                    vehicle.style.transform = 'translateY(-50%) rotate(90deg)';
+                    break;
+                case 'west':
+                    vehicle.style.left = '100%';
+                    vehicle.style.top = '50%';
+                    vehicle.style.transform = 'translateY(-50%) rotate(-90deg)';
+                    break;
+            }
+            
+            canvas.appendChild(vehicle);
+            
+            vehicles.push({
+                element: vehicle,
+                direction: direction,
+                speed: isEmergency ? 1.5 : 1,
+                isEmergency: isEmergency
+            });
+            
+            setTimeout(() => moveVehicle(vehicle, direction), 100);
+        }
+
+        function moveVehicle(vehicle, direction) {
+            if (!simulationRunning) return;
+            
+            const currentLeft = parseFloat(vehicle.style.left) || 0;
+            const currentTop = parseFloat(vehicle.style.top) || 0;
+            
+            let newLeft = currentLeft;
+            let newTop = currentTop;
+            
+            switch(direction) {
+                case 'north':
+                    newTop = currentTop - 2;
+                    if (newTop < -50) {
+                        vehicle.remove();
+                        return;
+                    }
+                    break;
+                case 'south':
+                    newTop = currentTop + 2;
+                    if (newTop > 450) {
+                        vehicle.remove();
+                        return;
+                    }
+                    break;
+                case 'east':
+                    newLeft = currentLeft + 2;
+                    if (newLeft > 850) {
+                        vehicle.remove();
+                        return;
+                    }
+                    break;
+                case 'west':
+                    newLeft = currentLeft - 2;
+                    if (newLeft < -50) {
+                        vehicle.remove();
+                        return;
+                    }
+                    break;
+            }
+            
+            vehicle.style.left = newLeft + 'px';
+            vehicle.style.top = newTop + 'px';
+            
+            setTimeout(() => moveVehicle(vehicle, direction), 30);
+        }
+
+        function createPedestrian() {
+            const canvas = document.getElementById('simulationCanvas');
+            const ped = document.createElement('div');
+            ped.className = 'pedestrian';
+            
+            const side = Math.random() < 0.5 ? 'left' : 'top';
+            if (side === 'left') {
+                ped.style.left = '35%';
+                ped.style.top = Math.random() * 400 + 'px';
+            } else {
+                ped.style.top = '35%';
+                ped.style.left = Math.random() * 600 + 'px';
+            }
+            
+            canvas.appendChild(ped);
+            setTimeout(() => ped.remove(), 8000);
+        }
+
+        function createCyclist() {
+            const canvas = document.getElementById('simulationCanvas');
+            const cyc = document.createElement('div');
+            cyc.className = 'cyclist';
+            
+            cyc.style.left = '-20px';
+            cyc.style.top = '55%';
+            canvas.appendChild(cyc);
+            
+            let pos = -20;
+            const moveInterval = setInterval(() => {
+                if (!simulationRunning) return;
+                pos += 3;
+                cyc.style.left = pos + 'px';
+                if (pos > 850) {
+                    cyc.remove();
+                    clearInterval(moveInterval);
+                }
+            }, 40);
+        }
+
+        function toggleSimulation() {
+            simulationRunning = !simulationRunning;
+            const btn = event.target;
+            btn.textContent = simulationRunning ? '⏸️ Pause' : '▶️ Play';
+        }
+
+        function addEmergencyVehicle() {
+            createVehicle(true);
+            document.getElementById('safetyScore').textContent = '96.2';
+            setTimeout(() => {
+                document.getElementById('safetyScore').textContent = '95.8';
+            }, 5000);
+        }
+
+        function resetSimulation() {
+            vehicles.forEach(v => v.element.remove());
+            document.querySelectorAll('.pedestrian, .cyclist').forEach(el => el.remove());
+            vehicles = [];
+            pedestrians = [];
+            cyclists = [];
+        }
+
+        function updatePriority(type) {
+            const value = document.getElementById(type + 'Priority').value;
+            document.getElementById(type + 'Value').textContent = value;
+            
+            if (type === 'ped' && value > 70) {
+                document.getElementById('negTime').textContent = (0.8 + (value - 70) * 0.02).toFixed(1) + 's';
+            }
+        }
+
+        function selectDesign(index) {
+            document.querySelectorAll('.design-card').forEach((card, i) => {
+                card.classList.toggle('selected', i === index);
+            });
+            currentDesign = index;
+            
+            const metrics = [
+                { safety: 95.8, co2: 32, wait: 48 },
+                { safety: 97.2, co2: 28, wait: 35 },
+                { safety: 98.5, co2: 42, wait: 58 }
+            ];
+            
+            document.getElementById('safetyScore').textContent = metrics[index].safety;
+            document.getElementById('co2Savings').textContent = metrics[index].co2 + '%';
+            document.getElementById('waitTime').textContent = metrics[index].wait + '%';
+        }
+
+        // Generate traffic
+        setInterval(() => {
+            if (simulationRunning && Math.random() < 0.3) {
+                createVehicle();
+            }
+        }, 2000);
+
+        setInterval(() => {
+            if (simulationRunning && Math.random() < 0.2) {
+                createPedestrian();
+            }
+        }, 5000);
+
+        setInterval(() => {
+            if (simulationRunning && Math.random() < 0.15) {
+                createCyclist();
+            }
+        }, 7000);
+
+        // Update metrics
+        setInterval(() => {
+            const throughput = parseInt(document.getElementById('throughput').textContent);
+            document.getElementById('throughput').textContent = throughput + Math.floor(Math.random() * 20 - 10);
+            
+            const v2x = Math.floor(Math.random() * 5 + 22);
+            document.getElementById('v2xCount').textContent = v2x + '/28';
+            
+            const conflicts = Math.floor(Math.random() * 3);
+            document.getElementById('conflicts').textContent = conflicts;
+        }, 5000);
+
+        // Initialize
+        createVehicle();
+        createVehicle();
+    </script>
+</body>
+</html>
